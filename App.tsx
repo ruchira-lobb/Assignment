@@ -16,6 +16,7 @@ const StoreInitializer = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
+  console.log('')
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

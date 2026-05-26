@@ -1,0 +1,43 @@
+# dependencies
+node_modules/
+
+# android
+android/.gradle/
+android/app/build/
+android/build/
+
+# ios
+ios/Pods/
+ios/build/
+
+# metro
+.metro-health-check*
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+
+# env
+.env
+
+# coverage
+coverage/
+
+# build files
+dist/
+build/
+
+# local config
+*.keystore
+local.properties
+
+# vscode
+.vscode/
+
+# misc
+*.tmp
+*.swp

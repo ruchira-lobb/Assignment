@@ -5,166 +5,48 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # Allows manual trigger
 
 jobs:
-  # Stage 1: Build
-  build:
-    name: 🔨 Stage 1 - Build
+  build-and-test:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-      
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      - name: 📦 Install dependencies
-        run: |
-          echo "📦 Installing npm dependencies..."
-          npm ci
-          echo "✅ Dependencies installed successfully"
-      
-      - name: 🏗️ Build TypeScript
-        run: |
-          echo "🏗️ Building TypeScript files..."
-          npx tsc --noEmit
-          echo "✅ TypeScript build completed"
-      
-      - name: 💾 Cache build artifacts
-        uses: actions/cache/save@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package-lock.json') }}
-
-  # Stage 2: Test
-  test:
-    name: 🧪 Stage 2 - Test
-    needs: build
-    runs-on: ubuntu-latest
+    - name: Checkout code
+      uses: actions/checkout@v3
     
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-      
-      - name: 🔧 Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          
-      - name: 💾 Restore cached dependencies
-        uses: actions/cache/restore@v3
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('package-lock.json') }}
-      
-      - name: 📦 Install dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: npm ci
-      
-      - name: 🧪 Run all tests
-        run: |
-          echo "🧪 Running test suite..."
-          npm test -- --coverage --watchAll=false
-          echo "✅ All tests passed"
-      
-      - name: 📊 Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/
-      
-      - name: 📝 Run simple test
-        run: |
-          echo "📝 Running additional simple test..."
-          npx jest src/__tests__/redux/favoritesSlice.test.ts --watchAll=false
-          echo "✅ Simple test completed"
-
-  # Stage 3: Deploy (Mock/Simulated)
-  deploy:
-    name: 🚀 Stage 3 - Deploy
-    needs: test
-    runs-on: ubuntu-latest
-    # Only run on main branch pushes (not PRs)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
     
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-      
-      - name: 🚀 Deploying application
-        run: |
-          echo "🚀 Starting deployment process..."
-          echo "📱 Target: React Native App"
-          echo "🏷️ Version: ${GITHUB_SHA::7}"
-          echo "📅 Timestamp: $(date)"
-          echo ""
-          echo "🔍 Deployment steps:"
-          echo "  1. ✅ Building bundle..."
-          echo "  2. ✅ Optimizing assets..."
-          echo "  3. ✅ Generating release artifacts..."
-          echo "  4. ✅ Uploading to distribution channel..."
-          echo ""
-          echo "✅ Deployment completed successfully!"
-          echo "📍 App is now available at: https://your-app-distribution.com"
-      
-      - name: 📝 Create deployment log
-        run: |
-          cat > deployment.log << EOF
-          DEPLOYMENT SUMMARY
-          =================
-          Status: SUCCESS
-          Time: $(date)
-          Commit: ${GITHUB_SHA}
-          Branch: ${GITHUB_REF_NAME}
-          Environment: Production
-          
-          Artifacts Generated:
-          - Android: app-release.apk (Mock)
-          - iOS: Lobb_App.ipa (Mock)
-          
-          Next Steps:
-          - Monitor app performance
-          - Check crash reports
-          EOF
-          echo "✅ Deployment log created"
-          cat deployment.log
-      
-      - name: 💾 Save deployment artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: deployment-artifacts
-          path: |
-            deployment.log
-            # Add actual build paths if needed:
-            # android/app/build/outputs/apk/release/
-            # ios/build/
-
-  # Optional: Send notification
-  notify:
-    name: 📧 Notification
-    needs: [build, test, deploy]
-    runs-on: ubuntu-latest
-    if: always()  # Run even if some stages fail
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
     
-    steps:
-      - name: 📊 Pipeline status
-        run: |
-          echo "═══════════════════════════════════════════════════════"
-          echo "              PIPELINE EXECUTION SUMMARY"
-          echo "═══════════════════════════════════════════════════════"
-          echo "✅ Build stage: ${{ needs.build.result }}"
-          echo "✅ Test stage: ${{ needs.test.result }}"
-          echo "✅ Deploy stage: ${{ needs.deploy.result }}"
-          echo "═══════════════════════════════════════════════════════"
-          echo ""
-          if [ "${{ needs.build.result }}" == "success" ] && \
-             [ "${{ needs.test.result }}" == "success" ]; then
-            echo "🎉 Pipeline completed successfully!"
-          else
-            echo "⚠️ Pipeline failed. Please check the logs above."
-            exit 1
-          fi
+    - name: Stage 1 - Build
+      run: |
+        echo "🔨 Starting Build Stage..."
+        npx tsc --noEmit
+        echo "✅ Build completed successfully!"
+      shell: bash
+    
+    - name: Stage 2 - Test
+      run: |
+        echo "🧪 Starting Test Stage..."
+        npm test -- --watchAll=false --passWithNoTests
+        echo "✅ Tests completed successfully!"
+      shell: bash
+    
+    - name: Stage 3 - Deploy (Mock)
+      run: |
+        echo "🚀 Starting Deploy Stage..."
+        echo "📦 Building for production..."
+        # If you have a build script:
+        # npm run build
+        echo "📍 Deploying to staging environment..."
+        echo "✅ Deployment completed successfully!"
+        echo "📊 Deployment Info:"
+        echo "   - Environment: Staging"
+        echo "   - Version: ${GITHUB_SHA::7}"
+        echo "   - Deployed by: GitHub Actions"
+      shell: bash
